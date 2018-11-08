@@ -1,20 +1,20 @@
 # prom-file-sd
 Prometheus file service discovery with RESTful API
 
-# Create directory for Prometheus data
+## Create directory for Prometheus data
 
 ```
 mkdir -p prometheus_data
 chown -R $USER:65534 prometheus_data
 ```
 
-# Run
+## Run
 
 ```
 docker-compose up -d
 ```
 
-# Add/Update target
+### Add/Update target
 
 ```
 curl -H 'Content-Type: application/json' \
@@ -28,13 +28,13 @@ curl -H 'Content-Type: application/json' \
 }'
 ```
 
-# Get targets
+### Get targets
 
 ```
 curl http://localhost:5000/targets
 ```
 
-# Delete target
+### Delete target
 
 ```
 curl -XDELETE \
@@ -49,10 +49,12 @@ curl -XDELETE \
 - [x] Add Support custom `metrics_path`  (e.g. `/api/v1/metrics`)
 - [ ] Add Web UI
 
-## Custom metrics_path
+### Custom metrics_path
 
 ```
-curl http://localhost:5000/targets -d '{
+curl -H 'Content-Type: application/json' \ 
+    http://localhost:5000/targets \
+    -d '{
     "target": "example.com:3000",
     "labels": {
         "env": "prom",
