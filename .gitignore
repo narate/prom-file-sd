@@ -102,3 +102,7 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+mongo_data
+prometheus_data
+targets.json
