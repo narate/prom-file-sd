@@ -28,13 +28,19 @@ curl -H 'Content-Type: application/json' \
 }'
 ```
 
+# Get targets
+
+```
+curl http://localhost:5000/targets
+```
+
 # Delete target
 
 ```
 curl -XDELETE \
     -H 'Content-Type: application/json' \
     http://localhost:5000/targets \
-    -d '{"target": "localhost:9090"}'
+    -d {"id": "5be488a46b045b30130fcbfa"}
 ```
 
 ![Prometheus Targets](images/prom-targets.png)
@@ -42,7 +48,6 @@ curl -XDELETE \
 # TODO
 - [x] Add Support custom `metrics_path`  (e.g. `/api/v1/metrics`)
 - [ ] Add Web UI
-
 
 ## Custom metrics_path
 

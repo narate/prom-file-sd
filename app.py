@@ -2,6 +2,7 @@ from flask import Flask, request
 from flask_restful import Resource, Api
 from jsonschema import validate
 from pymongo import MongoClient
+from bson.objectid import ObjectId
 import json, os
 
 MONGO_HOST = 'db'
@@ -19,6 +20,14 @@ schema = {
      "required": ["target"]
 }
 
+delete_schema = {
+     "type" : "object",
+     "properties" : {
+         "id" : {"type" : "string"},
+     },
+     "required": ["id"]
+}
+
 class IndexPage(Resource):
     def get(self):
         return { "message": "Need Web UI, Please add UI support https://github.com/narate/prom-file-sd"}
@@ -30,7 +39,7 @@ class PromTargets(Resource):
         col = db.targets
         targets = []
         for o in col.find():
-            targets.append({'target': o['target'], 'labels': o.get('labels',{})})
+            targets.append({'target': o['target'], 'labels': o.get('labels',{}), 'id': str(o['_id'])})
         return { 'targets': targets }
     
     def post(self):
@@ -45,12 +54,18 @@ class PromTargets(Resource):
         client = MongoClient(MONGO_HOST, 27017)
         db = client.prom
         col = db.targets
+        labels = body.get('labels', {})
         doc = {
             'target': body['target'],
-            'labels': body.get('labels',{})
+            'labels': labels
         }
-
-        col.replace_one({'target': body['target']}, doc, True)
+        
+        metrics_path = labels.get('__metrics_path__', '/metrics')
+        sel = {
+            'target': body['target'],
+            'labels.__metrics_path__': metrics_path
+        }
+        col.replace_one(sel, doc, True)
         with open('/prom/conf/targets.json', 'w') as f:
             targets = []
             for o in col.find({}, projection={'_id': False}):
@@ -72,7 +87,7 @@ class PromTargets(Resource):
     def delete(self):
         body = request.get_json()
         try:
-            validate(body, schema)
+            validate(body, delete_schema)
         except:
             return {
                     'message': 'Input data invalid or miss some value, required: {}'.format(schema['required'])
@@ -82,7 +97,7 @@ class PromTargets(Resource):
         db = client.prom
         col = db.targets
         sel = {
-            'target': body['target']
+            '_id': ObjectId(body['id'])
         }
         col.delete_one(sel)
         with open('/prom/conf/targets.json', 'w') as f:
