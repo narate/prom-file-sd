@@ -1,33 +1,20 @@
-from flask import Flask
-from flask_restful import Resource, Api, reqparse
+from flask import Flask, request
+from flask_restful import Resource, Api
 from jsonschema import validate
-import json, os
 from pymongo import MongoClient
+import json, os
 
 MONGO_HOST = 'db'
+MONGO_PORT = 27017
 
 app = Flask(__name__)
 api = Api(app)
 
-parser = reqparse.RequestParser()
-parser.add_argument('target')
-parser.add_argument('job')
-parser.add_argument('env')
-
-new_schema = {
+schema = {
      "type" : "object",
      "properties" : {
          "target" : {"type" : "string"},
-         "env" : {"type" : "string"},
-         "job": {"type" : "string"}
-     },
-     "required": ["target", "env", "job"]
-}
-
-delete_schema = {
-     "type" : "object",
-     "properties" : {
-         "target" : {"type" : "string"}
+         "labels" : {"type" : "object"}
      },
      "required": ["target"]
 }
@@ -38,54 +25,50 @@ class IndexPage(Resource):
 
 class PromTargets(Resource):
     def get(self):
-        client = MongoClient(MONGO_HOST, 27017)
+        client = MongoClient(MONGO_HOST, MONGO_PORT)
         db = client.prom
         col = db.targets
         targets = []
         for o in col.find():
-            targets.append({'target': o['target'], 'env': o['env'], 'job': o['job']})
+            targets.append({'target': o['target'], 'labels': o.get('labels',{})})
         return { 'targets': targets }
     
     def post(self):
-        args = parser.parse_args()
+        body = request.get_json()
+
         try:
-            validate(args, new_schema)
+            validate(body, schema)
         except:
             return {
-                    'message': 'Input data invalid or miss some value, required: {}'.format(new_schema['required'])
+                    'message': 'Input data invalid or miss some value, required: {}'.format(schema['required'])
                 }, 400
         
         client = MongoClient(MONGO_HOST, 27017)
         db = client.prom
         col = db.targets
         doc = {
-            'target': args['target'],
-            'job': args['job'],
-            'env': args['env']
+            'target': body['target'],
+            'labels': body.get('labels',{})
         }
 
-        col.replace_one({ 'target': args['target']}, doc, True)
+        col.replace_one({'target': body['target']}, doc, True)
         with open('/prom/conf/targets.json', 'w') as f:
             targets = []
-            jobs = col.distinct('job')
-            envs = col.distinct('env')
-            for j in jobs:
-                for e in envs:
-                    labels = {'job': j, 'env': e }
-                    target = []
-                    for o in col.find(labels,{'target':1}):
-                        target.append(o['target'])
-                    if len(target)> 0:
-                        targets.append({'targets': target, 'labels':labels})
-        
+            for o in col.find({}, projection={'_id': False}):
+                targets.append(
+                    {
+                        'targets': [o['target']],
+                        'labels': o.get('labels',{})
+                    }
+                )
+    
             f.write(json.dumps(targets, indent=2))
             f.flush()
             os.fsync(f.fileno())
         return {
             'status': 'created',
-            'data': args
+            'data': body
         }, 201
-
 
 api.add_resource(IndexPage, '/')
 api.add_resource(PromTargets, '/targets')
