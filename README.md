@@ -40,9 +40,22 @@ curl -XDELETE \
 ![Prometheus Targets](images/prom-targets.png)
 
 # TODO
-- [ ] Add Support custom `metrics_path`  (e.g. `/api/v1/metrics`)
+- [x] Add Support custom `metrics_path`  (e.g. `/api/v1/metrics`)
 - [ ] Add Web UI
 
+
+## Custom metrics_path
+
+```
+curl http://localhost:5000/targets -d '{
+    "target": "example.com:3000",
+    "labels": {
+        "env": "prom",
+	"job": "prom",
+	"__metrics_path__": "/api/v1/metrics"
+    }
+}'
+```
 
 ### USE FILE-BASED SERVICE DISCOVERY TO DISCOVER SCRAPE TARGETS
 https://prometheus.io/docs/guides/file-sd/
