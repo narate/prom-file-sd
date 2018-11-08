@@ -27,8 +27,8 @@ curl http://localhost:5000/targets -d '{
 ![Prometheus Targets](images/prom-targets.png)
 
 # TODO
-- [] Add Support custom `metrics_path`  (e.g. `/api/v1/metrics`)
-- [] Add Web UI
+- [ ] Add Support custom `metrics_path`  (e.g. `/api/v1/metrics`)
+- [ ] Add Web UI
 
 
 ### USE FILE-BASED SERVICE DISCOVERY TO DISCOVER SCRAPE TARGETS
