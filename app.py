@@ -60,11 +60,15 @@ class PromTargets(Resource):
             'labels': labels
         }
         
-        metrics_path = labels.get('__metrics_path__', '/metrics')
         sel = {
-            'target': body['target'],
-            'labels.__metrics_path__': metrics_path
+            'target': body['target']
         }
+        metrics_path = labels.get('__metrics_path__')
+        if metrics_path is not None:
+            sel['labels.__metrics_path__'] = metrics_path
+        else:
+            doc['labels']['__metrics_path__'] = '/metrics'
+        
         col.replace_one(sel, doc, True)
         with open('/prom/conf/targets.json', 'w') as f:
             targets = []
@@ -81,7 +85,7 @@ class PromTargets(Resource):
             os.fsync(f.fileno())
         return {
             'status': 'created',
-            'data': body
+            'data': doc
         }, 201
 
     def delete(self):
