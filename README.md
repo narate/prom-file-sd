@@ -14,16 +14,27 @@ chown -R $USER:65534 prometheus_data
 docker-compose up -d
 ```
 
-# Add target
+# Add/Update target
 
 ```
-curl http://localhost:5000/targets -d '{
+curl -H 'Content-Type: application/json' \
+    http://localhost:5000/targets \
+    -d '{
     "target": "localhost:9090",
     "labels": {
         "env": "prom",
-	    "job": "prom"
+        "job": "prom"
     }
 }'
+```
+
+# Delete target
+
+```
+curl -XDELETE \
+    -H 'Content-Type: application/json' \
+    http://localhost:5000/targets \
+    -d '{"target": "localhost:9090"}'
 ```
 
 ![Prometheus Targets](images/prom-targets.png)

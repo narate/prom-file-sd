@@ -35,7 +35,6 @@ class PromTargets(Resource):
     
     def post(self):
         body = request.get_json()
-
         try:
             validate(body, schema)
         except:
@@ -69,6 +68,37 @@ class PromTargets(Resource):
             'status': 'created',
             'data': body
         }, 201
+
+    def delete(self):
+        body = request.get_json()
+        try:
+            validate(body, schema)
+        except:
+            return {
+                    'message': 'Input data invalid or miss some value, required: {}'.format(schema['required'])
+                }, 400
+        
+        client = MongoClient(MONGO_HOST, 27017)
+        db = client.prom
+        col = db.targets
+        sel = {
+            'target': body['target']
+        }
+        col.delete_one(sel)
+        with open('/prom/conf/targets.json', 'w') as f:
+            targets = []
+            for o in col.find({}, projection={'_id': False}):
+                targets.append(
+                    {
+                        'targets': [o['target']],
+                        'labels': o.get('labels',{})
+                    }
+                )
+    
+            f.write(json.dumps(targets, indent=2))
+            f.flush()
+            os.fsync(f.fileno())
+        return None, 204
 
 api.add_resource(IndexPage, '/')
 api.add_resource(PromTargets, '/targets')
