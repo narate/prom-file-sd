@@ -17,7 +17,7 @@ docker-compose up -d
 # Add target
 
 ```
-curl http://localhost:5000 -d '{
+curl http://localhost:5000/targets -d '{
     "target": "localhost:9090",
 	"env": "prom",
 	"job": "prom"
