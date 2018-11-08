@@ -51,7 +51,7 @@ class PromTargets(Resource):
                     'message': 'Input data invalid or miss some value, required: {}'.format(schema['required'])
                 }, 400
         
-        client = MongoClient(MONGO_HOST, 27017)
+        client = MongoClient(MONGO_HOST, MONGO_PORT)
         db = client.prom
         col = db.targets
         labels = body.get('labels', {})
@@ -93,7 +93,7 @@ class PromTargets(Resource):
                     'message': 'Input data invalid or miss some value, required: {}'.format(schema['required'])
                 }, 400
         
-        client = MongoClient(MONGO_HOST, 27017)
+        client = MongoClient(MONGO_HOST, MONGO_PORT)
         db = client.prom
         col = db.targets
         sel = {
