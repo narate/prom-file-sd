@@ -5,8 +5,8 @@ from pymongo import MongoClient
 from bson.objectid import ObjectId
 import json, os
 
-MONGO_HOST = 'db'
-MONGO_PORT = 27017
+MONGO_HOST = os.environ.get('MONGO_HOST', 'db')
+MONGO_PORT = os.environ.get('MONGO_PORT', 27017)
 
 app = Flask(__name__)
 api = Api(app)
